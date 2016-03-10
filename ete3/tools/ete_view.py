@@ -235,7 +235,7 @@ def run(args):
             break
 
     if args.as_ncbi:
-        ts.show_leaf_name = False
+        ts.show_leaf_name = True
         FACES.extend(parse_faces(
             ['value:@sci_name, size:10, fstyle:italic',
              'value:@taxid, color:grey, size:6, format:" - %s"',
