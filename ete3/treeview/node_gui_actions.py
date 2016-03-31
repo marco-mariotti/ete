@@ -197,6 +197,8 @@ class _NodeActions(object):
         
 
         contextMenu.addAction( "Show newick", self.show_newick)
+        # add custom actions to node if it has function add_context_menu_actions
+        if hasattr(self.node, 'add_context_menu_actions'):             self.node.add_context_menu_actions(contextMenu)  
         contextMenu.exec_(QtGui.QCursor.pos())
 
     def _gui_mark_node(self, mark=None):

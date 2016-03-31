@@ -232,7 +232,7 @@ class TreeNode(object):
             first_match = next(self.iter_search_nodes(name=value))
             return first_match
         except StopIteration:
-            raise TreeError("Node not found")
+            raise TreeError("Node not found: {n}".format(n=value))
 
     def __add__(self, value):
         """ This allows to sum two trees."""

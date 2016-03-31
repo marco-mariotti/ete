@@ -47,31 +47,20 @@ from .node_gui_actions import _NodeActions as _ActionDelegator
 from math import pi, cos, sin
 import six
 from six.moves import range
-
-class _TextFaceItem(QGraphicsSimpleTextItem, _ActionDelegator):
-    def __init__(self, face, node, text):
+q
+class _TextFaceItem(QGraphicsSimpleTextItem): 
+    def __init__(self, face, text):
         QGraphicsSimpleTextItem.__init__(self, text)
-        _ActionDelegator.__init__(self)
-        self.node = node
         self.face = face
         self._bounding_rect = self.face.get_bounding_rect()
         self._real_rect = self.face.get_real_rect()
     def boundingRect(self):
         return self._bounding_rect
 
-class _ImgFaceItem(QGraphicsPixmapItem, _ActionDelegator):
-    def __init__(self, face, node, pixmap):
+class _ImgFaceItem(QGraphicsPixmapItem):
+    def __init__(self, face, pixmap):
         QGraphicsPixmapItem.__init__(self, pixmap)
-        _ActionDelegator.__init__(self)
-        self.node = node
 
-class _BackgroundFaceItem(QGraphicsRectItem):
-    def __init__(self, face, node):
-        QGraphicsRectItem.__init__(self)
-        self.node = node
-
-    def paint(self, painter, option, index):
-        return
 
 class _FaceGroupItem(QGraphicsRectItem): # I was about to name this FaceBookItem :)
     def paint(self, painter, option, index):
@@ -201,7 +190,7 @@ class _FaceGroupItem(QGraphicsRectItem): # I was about to name this FaceBookItem
     def render(self):
         x = 0
         for c in self.columns:
-            max_w = self.c2max_w[c]
+            max_w = self.c2max_w[c]  if c in self.c2max_w else 0
             faces = self.column2faces.get(c, [])
 
             if self.as_grid:
@@ -218,7 +207,7 @@ class _FaceGroupItem(QGraphicsRectItem): # I was about to name this FaceBookItem
 
                 f.node = self.node
                 if f.type == "text":
-                    obj = _TextFaceItem(f, self.node, f.get_text())
+                    obj = _TextFaceItem(f, f.get_text())
                     font = f._get_font()
                     obj.setFont(font)
                     obj.setBrush(QBrush(QColor(f.fgcolor)))
@@ -226,9 +215,19 @@ class _FaceGroupItem(QGraphicsRectItem): # I was about to name this FaceBookItem
                     obj = f.item
                 else:
                     # Loads the pre-generated pixmap
-                    obj = _ImgFaceItem(f, self.node, f.pixmap)
+                    obj = _ImgFaceItem(f, f.pixmap)
 
-                obj.setAcceptsHoverEvents(True)
+                ### Actions: 
+                # if a action_delegator attribute is defined for the class of face f, then this baseclass is added to obj
+                # if a action_delegator attribute is not defined, the actions are inherited from the node; i.e., clicking on a face is the same as clicking on its node
+                # if a action_delegator attribute is defined as None or False, no actions are active for this face
+                action_delegator= f.action_delegator if hasattr(f, 'action_delegator') else _ActionDelegator
+                if action_delegator:
+                    class _PatchedItem(obj.__class__, action_delegator): __name__ = obj.__class__.__name__  ## to add action_delegator baseclass to obj
+                    obj.__class__ = _PatchedItem
+                    action_delegator.__init__(obj)
+                    obj.node=self.node
+                #obj.setAcceptsHoverEvents(True)  #removed: this happens in the action_delegator.__init__
                 obj.setParentItem(self)
 
                 x_offset, y_offset = 0, 0
