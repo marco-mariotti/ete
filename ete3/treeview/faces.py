@@ -181,6 +181,12 @@ class Face(object):
                              set on the painter. A "None" value means
                              invisible border.
     :param black (inner\_)border.color: RGB or color name in :data:`SVG_COLORS`
+    :param None actions: define custom event actions for pyqt4 items generated for this face.
+                       A class must be provided; its methods will be inherited by the graphic
+                        items of this face and replace the default node actions.
+                       If a list of such classes is provided, the methods of each class are 
+                        added on top of the default node actions instead.
+                       The None value means: default actions only
 
     See also specific options for each face type.
 
@@ -188,7 +194,8 @@ class Face(object):
     __slots__ = ["margin_left", "margin_right", "margin_top", "margin_bottom",
                  "pixmap", "opacity", "rotable", "rotable", "hz_align",
                  "vt_align", "background", "border", "inner_border",
-                 "inner_background", "rotation", "node", "type"]
+                 "inner_background", "rotation", "node", "type",
+                 "actions"    ]
 
     def __init__(self):
         self.node        = None
@@ -208,6 +215,7 @@ class Face(object):
         self.inner_border = _Border()
         self.inner_background = _Background()
         self.rotation = 0
+        self.actions =  None 
 
     def _size(self):
         if self.pixmap:

@@ -43,11 +43,11 @@ from PyQt4.QtGui import QGraphicsSimpleTextItem, QGraphicsPixmapItem, \
     QGraphicsRectItem, QTransform, QBrush, QPen, QColor, QGraphicsItem
 
 from .main import FACE_POSITIONS, _leaf
-from .node_gui_actions import _NodeActions as _ActionDelegator
+from .node_gui_actions import _NodeActions 
 from math import pi, cos, sin
 import six
 from six.moves import range
-q
+
 class _TextFaceItem(QGraphicsSimpleTextItem): 
     def __init__(self, face, text):
         QGraphicsSimpleTextItem.__init__(self, text)
@@ -189,6 +189,17 @@ class _FaceGroupItem(QGraphicsRectItem): # I was about to name this FaceBookItem
 
     def render(self):
         x = 0
+
+        # preparing action delegator class object
+        if not self.node is None:
+            if  type(self.node.actions)==list:   action_delegators = self.node.actions+[ _NodeActions  ]
+            elif     self.node.actions is None:  action_delegators = [ _NodeActions ]    # default
+            elif not self.node.actions:          action_delegators=  []
+            else:                                action_delegators = [self.node.actions]
+        else:                                    action_delegators=  []
+        node_action_delegator=type('node_action_delegator', tuple(action_delegators), {})
+        # now node_action_delegator is a class with all the default action methods for this node
+        
         for c in self.columns:
             max_w = self.c2max_w[c]  if c in self.c2max_w else 0
             faces = self.column2faces.get(c, [])
@@ -217,17 +228,25 @@ class _FaceGroupItem(QGraphicsRectItem): # I was about to name this FaceBookItem
                     # Loads the pre-generated pixmap
                     obj = _ImgFaceItem(f, f.pixmap)
 
+                obj.node=self.node
+                obj.face=f
                 ### Actions: 
+                # if a action_delegator attribute is None (default), the actions are inherited from the node; i.e., clicking on a face is the same as clicking on its node
+                # if a action_delegator attribute is False, no actions are active for this face
                 # if a action_delegator attribute is defined for the class of face f, then this baseclass is added to obj
-                # if a action_delegator attribute is not defined, the actions are inherited from the node; i.e., clicking on a face is the same as clicking on its node
-                # if a action_delegator attribute is defined as None or False, no actions are active for this face
-                action_delegator= f.action_delegator if hasattr(f, 'action_delegator') else _ActionDelegator
-                if action_delegator:
-                    class _PatchedItem(obj.__class__, action_delegator): __name__ = obj.__class__.__name__  ## to add action_delegator baseclass to obj
-                    obj.__class__ = _PatchedItem
-                    action_delegator.__init__(obj)
-                    obj.node=self.node
-                #obj.setAcceptsHoverEvents(True)  #removed: this happens in the action_delegator.__init__
+                # to add actions to the default ones (or override only some of them), provide a action_delegator attribute which is a list of baseclasses to be added
+                
+                if  type(f.actions)==list:   action_delegators = f.actions+[ node_action_delegator ]
+                elif     f.actions is None:  action_delegators = [ node_action_delegator ]
+                elif not f.actions:          action_delegators=  []
+                else:                        action_delegators = [f.actions]
+                obj_class= type(obj);  obj_class_name=obj_class.__name__   # passive type call
+                new_class=    type( obj_class_name,   tuple(action_delegators),   {})  # active type call: creating a new class
+                patched_class=type( obj_class_name,   (obj_class, new_class), {})  # and again
+                obj.__class__=patched_class
+                new_class.__init__(obj)
+                # now obj had many subclasses added as many layers of actions we wanted to add. Simplest case: just default node actions
+
                 obj.setParentItem(self)
 
                 x_offset, y_offset = 0, 0

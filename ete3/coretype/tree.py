@@ -187,6 +187,8 @@ class TreeNode(object):
     faces = property(fget=_get_face_areas, \
                          fset=_set_face_areas)
 
+    actions=None  # added; by default actions are a class attribute but they may be changed to instance attributes with no problems. 
+    #  if actions is a list, it must be a list of classes  (base= object)  which will be added, with priority, to the default action events for this node
     def __init__(self, newick=None, format=0, dist=None, support=None,
                  name=None):
         self._children = []

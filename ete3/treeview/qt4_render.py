@@ -45,7 +45,7 @@ from . import qt4_circular_render as crender
 from . import qt4_rect_render as rrender
 
 from .main import _leaf, NodeStyle, _FaceAreas, tracktime, TreeStyle
-from .node_gui_actions import _NodeActions as _ActionDelegator
+from .node_gui_actions import _NodeActions 
 from .qt4_face_render import update_node_faces, _FaceGroupItem, _TextFaceItem
 from .templates import _DEFAULT_STYLE, apply_template
 from . import faces
@@ -74,32 +74,31 @@ import six
 ## |                                         |=======================================|                                        |
 ## |==========================================================================================================================|
 
-class _CircleItem(QtGui.QGraphicsEllipseItem, _ActionDelegator):
+
+
+
+class _CircleItem(QtGui.QGraphicsEllipseItem): 
     def __init__(self, node):
         self.node = node
         d = node.img_style["size"]
         QtGui.QGraphicsEllipseItem.__init__(self, 0, 0, d, d)
-        _ActionDelegator.__init__(self)
-
         self.setBrush(QtGui.QBrush(QtGui.QColor(self.node.img_style["fgcolor"])))
         self.setPen(QtGui.QPen(QtGui.QColor(self.node.img_style["fgcolor"])))
 
-class _RectItem(QtGui.QGraphicsRectItem, _ActionDelegator):
+class _RectItem(QtGui.QGraphicsRectItem): 
     def __init__(self, node):
         self.node = node
         d = node.img_style["size"]
         QtGui.QGraphicsRectItem.__init__(self, 0, 0, d, d)
-        _ActionDelegator.__init__(self)
         self.setBrush(QtGui.QBrush(QtGui.QColor(self.node.img_style["fgcolor"])))
         self.setPen(QtGui.QPen(QtGui.QColor(self.node.img_style["fgcolor"])))
 
-class _SphereItem(QtGui.QGraphicsEllipseItem, _ActionDelegator):
+class _SphereItem(QtGui.QGraphicsEllipseItem): 
     def __init__(self, node):
         self.node = node
         d = node.img_style["size"]
         r = d/2.0
         QtGui.QGraphicsEllipseItem.__init__(self, 0, 0, d, d)
-        _ActionDelegator.__init__(self)
         #self.setBrush(QtGui.QBrush(QtGui.QColor(self.node.img_style["fgcolor"])))
         self.setPen(QtGui.QPen(QtGui.QColor(self.node.img_style["fgcolor"])))
         gradient = QtGui.QRadialGradient(r, r, r,(d)/3,(d)/3)
@@ -141,11 +140,10 @@ class _NodeItem(_EmptyItem):
         self.fullRegion = QtCore.QRectF()
         self.highlighted = False
 
-class _NodeLineItem(QtGui.QGraphicsLineItem, _ActionDelegator):
+class _NodeLineItem(QtGui.QGraphicsLineItem):
     def __init__(self, node, *args, **kargs):
         self.node = node
         QtGui.QGraphicsLineItem.__init__(self, *args, **kargs)
-        _ActionDelegator.__init__(self)
     def paint(self, painter, option, widget):
         QtGui.QGraphicsLineItem.paint(self, painter, option, widget)
 
@@ -621,15 +619,23 @@ def render_node_content(node, n2i, n2f, img):
     face_start_x = max(0, nodeR.width() - facesR.width() - vlw)
     ball_start_x = face_start_x - ball_size
 
-    if ball_size:
-        if node.img_style["shape"] == "sphere":
-            node_ball = _SphereItem(node)
-        elif node.img_style["shape"] == "circle":
-            node_ball = _CircleItem(node)
-        elif node.img_style["shape"] == "square":
-            node_ball = _RectItem(node)
+    ### actions: adding node actions, or custom actions if defined for this node
+    if  type(node.actions)==list:   action_delegators = node.actions+[ _NodeActions  ]
+    elif     node.actions is None:  action_delegators = [ _NodeActions ]                     # default
+    elif not node.actions:          action_delegators=  []
+    else:                           action_delegators = [node.actions]
+    node_action_delegator=type('node_action_delegator', tuple(action_delegators), {})
 
+    if ball_size:
+        if node.img_style["shape"] == "sphere":            node_ball = _SphereItem(node)
+        elif node.img_style["shape"] == "circle":          node_ball = _CircleItem(node)
+        elif node.img_style["shape"] == "square":          node_ball = _RectItem(node)
         node_ball.setPos(ball_start_x, center-(ball_size/2.0))
+
+        obj_class=  type(ball_size);   obj_class_name=obj_class.__name__   # passive type call
+        patched_class= type( obj_class_name,   (obj_class, node_action_delegator), {})  # active type call: defining a new class
+        ball_size.__class__=patched_class
+        node_action_delegator.__init__(ball_size)
 
         #from qt4_gui import _BasicNodeActions
         #node_ball.delegate = _BasicNodeActions()
@@ -648,8 +654,16 @@ def render_node_content(node, n2i, n2f, img):
     #pen.setCapStyle(QtCore.Qt.RoundCap)
     #pen.setCapStyle(QtCore.Qt.SquareCap)
     #pen.setJoinStyle(QtCore.Qt.RoundJoin)
-    hz_line = _LineItem()
+    #hz_line = _LineItem()
     hz_line = _NodeLineItem(node)
+    
+    # actions on horizontal line as well!
+    obj_class=     type(hz_line);   obj_class_name=obj_class.__name__   # passive type call
+    patched_class= type( obj_class_name,   (obj_class, node_action_delegator), {})  # active type call: defining a new class
+    hz_line.__class__=patched_class
+    node_action_delegator.__init__(hz_line)
+    
+
     hz_line.setPen(pen)
 
     join_fix = 0
