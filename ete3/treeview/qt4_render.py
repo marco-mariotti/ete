@@ -632,10 +632,10 @@ def render_node_content(node, n2i, n2f, img):
         elif node.img_style["shape"] == "square":          node_ball = _RectItem(node)
         node_ball.setPos(ball_start_x, center-(ball_size/2.0))
 
-        obj_class=  type(ball_size);   obj_class_name=obj_class.__name__   # passive type call
+        obj_class=  type(node_ball);   obj_class_name=obj_class.__name__   # passive type call
         patched_class= type( obj_class_name,   (obj_class, node_action_delegator), {})  # active type call: defining a new class
-        ball_size.__class__=patched_class
-        node_action_delegator.__init__(ball_size)
+        node_ball.__class__=patched_class
+        node_action_delegator.__init__(node_ball)
 
         #from qt4_gui import _BasicNodeActions
         #node_ball.delegate = _BasicNodeActions()
