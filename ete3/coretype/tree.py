@@ -394,6 +394,7 @@ class TreeNode(object):
                 \ A
 
         """
+
         parent = self.up
         if parent:
             if preserve_branch_length:
@@ -1975,10 +1976,13 @@ class TreeNode(object):
         """
         self.resolve_polytomy()
 
-        for n in self.get_descendants():
+        for n in self.traverse():
             if len(n.children) == 1:
-                n.delete(prevent_nondicotomic=True,
-                         preserve_branch_length=preserve_branch_length)
+                if n==self:  
+                    n.children[0].delete(prevent_nondicotomic=True, preserve_branch_length=preserve_branch_length)
+                else: 
+                    n.delete(prevent_nondicotomic=True, preserve_branch_length=preserve_branch_length)
+                
 
 
     def get_topology_id(self, attr="name"):
