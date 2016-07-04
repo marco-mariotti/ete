@@ -85,6 +85,15 @@ class _CircleItem(QtGui.QGraphicsEllipseItem):
         self.setBrush(QtGui.QBrush(QtGui.QColor(self.node.img_style["fgcolor"])))
         self.setPen(QtGui.QPen(QtGui.QColor(self.node.img_style["fgcolor"])))
 
+class _TriangleItem(QtGui.QGraphicsPolygonItem): 
+    def __init__(self, node):
+        self.node = node
+        d = node.img_style["size"]
+        triangle_polygon = QtGui.QPolygonF([QtCore.QPointF(0, d/2.0), QtCore.QPointF(d, 0), QtCore.QPointF(d, d)])
+        QtGui.QGraphicsEllipseItem.__init__(self, triangle_polygon)
+        self.setBrush(QtGui.QBrush(QtGui.QColor(self.node.img_style["fgcolor"])))
+        self.setPen(QtGui.QPen(QtGui.QColor(self.node.img_style["fgcolor"])))
+
 class _RectItem(QtGui.QGraphicsRectItem): 
     def __init__(self, node):
         self.node = node
@@ -630,6 +639,7 @@ def render_node_content(node, n2i, n2f, img):
         if node.img_style["shape"] == "sphere":            node_ball = _SphereItem(node)
         elif node.img_style["shape"] == "circle":          node_ball = _CircleItem(node)
         elif node.img_style["shape"] == "square":          node_ball = _RectItem(node)
+        elif node.img_style["shape"] == "triangle":        node_ball = _TriangleItem(node)
         node_ball.setPos(ball_start_x, center-(ball_size/2.0))
 
         obj_class=  type(node_ball);   obj_class_name=obj_class.__name__   # passive type call
@@ -644,6 +654,8 @@ def render_node_content(node, n2i, n2f, img):
 
     else:
         node_ball = None
+
+    node.node_ball = node_ball
 
     # Branch line to parent
     pen = QtGui.QPen()

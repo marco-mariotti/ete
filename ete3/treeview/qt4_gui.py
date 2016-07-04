@@ -137,7 +137,8 @@ class _GUI(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, *args)
         self.main = _mainwindow.Ui_MainWindow()
         self.main.setupUi(self)
-        self.setWindowTitle("ETE Tree Browser")
+        #self.setWindowTitle("ETE Tree Browser")
+        self.setWindowTitle("Treedex - main window")
 
         self.scene = scene
         self.scene.GUI = self
