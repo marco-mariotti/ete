@@ -187,6 +187,7 @@ class Face(object):
                        If a list of such classes is provided, the methods of each class are 
                         added on top of the default node actions instead.
                        The None value means: default actions only
+                       A False value means: no actions
 
     See also specific options for each face type.
 
