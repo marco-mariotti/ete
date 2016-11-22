@@ -56,23 +56,25 @@ GUI_TIMEOUT = None
 def exit_gui(a,b):
     _QApp.exit(0)
 
-def init_scene(t, layout, ts):
+def init_scene(t, layout, ts, qapp):
     global _QApp
 
     ts = init_tree_style(t, ts)
     if layout:
         ts.layout_fn  = layout
 
-    if not _QApp:
+    if qapp:
+        _QApp = qapp
+    elif not _QApp:
         _QApp = QtGui.QApplication(["ETE"])
 
     scene  = _TreeScene()
 	#ts._scale = None
     return scene, ts
 
-def show_tree(t, layout=None, tree_style=None, win_name=None):
+def show_tree(t, layout=None, tree_style=None, win_name=None, qapp=None):
     """ Interactively shows a tree."""
-    scene, img = init_scene(t, layout, tree_style)
+    scene, img = init_scene(t, layout, tree_style, qapp)
     tree_item, n2i, n2f = render(t, img)
     scene.init_values(t, img, n2i, n2f)
 

@@ -197,6 +197,7 @@ class _FaceGroupItem(QGraphicsRectItem): # I was about to name this FaceBookItem
             elif not self.node.actions:          action_delegators=  []
             else:                                action_delegators = [self.node.actions]
         else:                                    action_delegators=  []
+
         node_action_delegator=type('node_action_delegator', tuple(action_delegators), {})
         # now node_action_delegator is a class with all the default action methods for this node
         

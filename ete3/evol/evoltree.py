@@ -294,7 +294,7 @@ class EvolNode(PhyloNode):
             if nucleotides:
                 leaf.sequence = translate(leaf.nt_sequence)
 
-    def show(self, layout=None, tree_style=None, histfaces=None):
+    def show(self, layout=None, tree_style=None, histfaces=None, qapp=None):
         '''
         call super show of PhyloTree
         histface should be a list of models to be displayes as histfaces
@@ -326,7 +326,7 @@ class EvolNode(PhyloNode):
                     else:
                         ts.aligned_foot.add_face(
                             mdl.properties['histface'], 1)
-            super(EvolTree, self).show(layout=layout, tree_style=ts)
+            super(EvolTree, self).show(layout=layout, tree_style=ts, qapp=qapp)
         else:
             raise ValueError("Treeview module is disabled")
 
